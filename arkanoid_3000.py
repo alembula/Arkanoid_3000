@@ -1,0 +1,125 @@
+from random import *
+from time import *
+import pygame
+
+pygame.init()
+win = pygame.display.set_mode((500,500))
+sssssssssss = (176, 199, 247)
+LIGB = (123, 200, 246)
+BLACK = (0,0,0)
+yel = (255,255,0)
+bg = (222, 122, 52)
+BLUE = (0, 0, 255)
+win.fill(bg)
+vremya = pygame.time.Clock()
+
+class Area():
+    def __init__(self,x = 0,y = 0,w = 20,h = 10,cvet_bg = bg):
+        self.rect = pygame.Rect(x,y,w,h)
+        self.cvet_bg = cvet_bg
+    def collidepoint(self,x, y):
+        return self.rect.collidepoint(x,y)
+    def colliderect(self, rect):
+        return self.rect.colliderect(rect)
+class Label(Area):
+    def __init__(self,text = '',x = 0,y = 0,w = 20,h = 10,cvet_bg = yel, cvet_text = BLACK):
+        super().__init__(x=x, y=y,w=w,h=h, cvet_bg = cvet_bg)
+        self.text = text
+        #self.set_text(text, cvet_text)
+    def set_text(self, text, fsize = 20, cvet_text = BLACK):
+        self.image = pygame.font.Font(None, fsize).render(text, True, cvet_text)
+    def draw(self, sh_x = 0, sh_y = 0, bordur = True):
+        pygame.draw.rect(win,self.cvet_bg, self.rect)
+        win.blit(self.image,(self.rect.x + sh_x, self.rect.y + sh_y))
+        if bordur == True:
+            self.bordur(BLUE)
+    def bordur(self, color):
+        pygame.draw.rect(win, color, self.rect, 15)
+
+class Picture(Area):
+    def __init__(self, file_name, x, y, w = 60, h = 50):
+        super().__init__(x=x, y=y,w=w,h=h)
+        self.image = pygame.image.load(file_name)
+    def draw(self):
+        win.blit(self.image,(self.rect.x, self.rect.y))
+pobeda = Picture('victory.png', 120,130)
+qaz = Picture('game_over.jpg', 0,100)
+
+enemy_spisok = []
+start_x = 10
+start_y = 10
+cislo_monstrov = 9
+cislo_ryadov = 3
+for i in range(cislo_ryadov):
+    for z in range(cislo_monstrov):
+        enemy = Picture('monstr2.png', x = start_x + 55*z+25*i, y = start_y + 55*i)
+        enemy_spisok.append(enemy)
+    cislo_monstrov -= 1
+bg_image = pygame.image.load('volshebnyj_les.jpg')
+ball = Picture('myach2.png', x = 200, y = 300)        
+ball.draw()
+platform = Picture('brevno.png', x = 200, y = 400)        
+platform.draw()
+speed = 5
+dx = 1
+dy = 1
+total = 0
+move_right = False
+move_left = False
+
+FPS = 60 
+    
+while total != 24:
+    if ball.colliderect(platform.rect):
+        dy *= -1
+    for m in enemy_spisok:
+        if m.colliderect(ball.rect):
+            dy *= -1
+            enemy_spisok.remove(m)
+            break
+    win.blit(bg_image, (0, 0))
+    ball.rect.x += speed * dx
+    if ball.rect.x >= 450 or ball.rect.x <= 0:
+        dx *= -1
+    ball.rect.y += speed * dy
+    if ball.rect.y >= 500 or ball.rect.y <= 0:
+        dy *= -1
+    ball.draw()
+    platform.draw()
+    for m in enemy_spisok:
+        m.draw()
+        
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                move_right = True
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT:
+                move_right = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                move_left = True
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                move_left = False
+    if move_right:
+        platform.rect.x +=3
+        
+    if move_left:
+        platform.rect.x -=3
+
+    if ball.rect.y >= 500:
+        win.fill((0, 0, 0))
+        qaz.draw()
+        pygame.display.update()
+        break
+
+    elif len(enemy_spisok) <= 0:
+        pobeda.draw()
+        pygame.display.update()
+        break
+     
+
+
+    pygame.display.update()
+    vremya.tick(FPS)
