@@ -3,7 +3,9 @@ from time import *
 import pygame
 
 pygame.init()
-win = pygame.display.set_mode((500,500))
+W = 500
+H = 500
+win = pygame.display.set_mode((W,H))
 sssssssssss = (176, 199, 247)
 LIGB = (123, 200, 246)
 BLACK = (0,0,0)
@@ -21,6 +23,8 @@ class Area():
         return self.rect.collidepoint(x,y)
     def colliderect(self, rect):
         return self.rect.colliderect(rect)
+
+
 class Label(Area):
     def __init__(self,text = '',x = 0,y = 0,w = 20,h = 10,cvet_bg = yel, cvet_text = BLACK):
         super().__init__(x=x, y=y,w=w,h=h, cvet_bg = cvet_bg)
@@ -36,12 +40,38 @@ class Label(Area):
     def bordur(self, color):
         pygame.draw.rect(win, color, self.rect, 15)
 
+
 class Picture(Area):
     def __init__(self, file_name, x, y, w = 60, h = 50):
         super().__init__(x=x, y=y,w=w,h=h)
         self.image = pygame.image.load(file_name)
     def draw(self):
         win.blit(self.image,(self.rect.x, self.rect.y))
+
+
+class GameSprite(pygame.sprite.Sprite):
+    def __init__(self, filename, x, y, speed, w_s, h_s):
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load(filename), (w_s, h_s))
+        self.speed = speed
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.w_s = w_s
+        self.h_s = h_s
+    def reset(self):
+        win.blit(self.image, (self.rect.x, self.rect.y))
+
+class Brevno(GameSprite):
+    def update(self):
+        keys_pressed = pygame.key.get_pressed()
+        # print(keys_pressed)
+        if keys_pressed[pygame.K_RIGHT] and self.rect.x < W-60:
+            self.rect.x += self.speed
+        if keys_pressed[pygame.K_LEFT] and self.rect.x > 10:
+            self.rect.x -= self.speed
+
+
 pobeda = Picture('victory.png', 120,130)
 qaz = Picture('game_over.jpg', 0,100)
 
@@ -56,10 +86,10 @@ for i in range(cislo_ryadov):
         enemy_spisok.append(enemy)
     cislo_monstrov -= 1
 bg_image = pygame.image.load('volshebnyj_les.jpg')
-ball = Picture('myach2.png', x = 200, y = 300)        
+ball = Picture('myach2.png', 200, 300)        
 ball.draw()
-platform = Picture('brevno.png', x = 200, y = 400)        
-platform.draw()
+brevno = Brevno('brevno.png', 200, 450, 5, 111, 25)        
+brevno.reset()
 speed = 5
 dx = 1
 dy = 1
@@ -70,7 +100,7 @@ move_left = False
 FPS = 60 
     
 while total != 24:
-    if ball.colliderect(platform.rect):
+    if ball.colliderect(brevno.rect):
         dy *= -1
     for m in enemy_spisok:
         if m.colliderect(ball.rect):
@@ -85,29 +115,12 @@ while total != 24:
     if ball.rect.y >= 500 or ball.rect.y <= 0:
         dy *= -1
     ball.draw()
-    platform.draw()
+
+    brevno.update()
+    brevno.reset()
     for m in enemy_spisok:
         m.draw()
-        
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                move_right = True
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT:
-                move_right = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                move_left = True
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                move_left = False
-    if move_right:
-        platform.rect.x += 5
-        
-    if move_left:
-        platform.rect.x -= 5
-
+    
     if ball.rect.y >= 500:
         win.fill((0, 0, 0))
         qaz.draw()
