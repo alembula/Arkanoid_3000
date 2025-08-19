@@ -103,10 +103,10 @@ while total != 24:
             if event.key == pygame.K_LEFT:
                 move_left = False
     if move_right:
-        platform.rect.x +=3
+        platform.rect.x += 5
         
     if move_left:
-        platform.rect.x -=3
+        platform.rect.x -= 5
 
     if ball.rect.y >= 500:
         win.fill((0, 0, 0))
