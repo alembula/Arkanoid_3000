@@ -33,19 +33,21 @@ class Area():
 
 
 class Label(Area):
-    def __init__(self,text = '',x = 0,y = 0,w = 20,h = 10,cvet_bg = yel, cvet_text = BLACK):
+    def __init__(self,text = '',x = 0,y = 0,w = 20,h = 10,cvet_bg = None, cvet_text = BLACK, bordur = 0):
         super().__init__(x=x, y=y,w=w,h=h, cvet_bg = cvet_bg)
         self.text = text
-        #self.set_text(text, cvet_text)
+        self.bordur = bordur
+        self.set_text(text, cvet_text = cvet_text)
     def set_text(self, text, fsize = 20, cvet_text = BLACK):
         self.image = pygame.font.Font(None, fsize).render(text, True, cvet_text)
-    def draw(self, sh_x = 0, sh_y = 0, bordur = True):
-        pygame.draw.rect(win,self.cvet_bg, self.rect)
+    def draw(self, sh_x = 0, sh_y = 0):
+        if not self.cvet_bg is None:
+            pygame.draw.rect(win,self.cvet_bg, self.rect)
         win.blit(self.image,(self.rect.x + sh_x, self.rect.y + sh_y))
-        if bordur == True:
-            self.bordur(BLUE)
-    def bordur(self, color):
-        pygame.draw.rect(win, color, self.rect, 15)
+        if self.bordur >= 0:
+            self.draw_bordur(BLUE)
+    def draw_bordur(self, color):
+        pygame.draw.rect(win, color, self.rect, self.bordur)
 
 
 class Picture(Area):
@@ -78,6 +80,7 @@ class Brevno(GameSprite):
             self.rect.x -= self.speed
 
 
+knopka = Label('lalalalal', x = 300, y = 300, w = 50, h = 50, cvet_bg = None ,cvet_text = BLACK, bordur = 3)
 pobeda = GameSprite('victory.png', 50, 50, 0, 400, 200)
 qaz = Picture('game_over.jpg', 0, 50)
 
@@ -150,6 +153,8 @@ while game.run == True:
         else:
             win.fill((0, 0, 0))
             qaz.draw()
+            knopka.draw()
 
     pygame.display.update()
     vremya.tick(FPS)
+# доделать кнопку и по хорошему новый класс кнопка
