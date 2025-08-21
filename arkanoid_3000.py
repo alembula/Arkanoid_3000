@@ -15,6 +15,13 @@ BLUE = (0, 0, 255)
 win.fill(bg)
 vremya = pygame.time.Clock()
 
+class Game():
+    finish = False
+    run = True
+    current_level = 0
+    win = False
+
+
 class Area():
     def __init__(self,x = 0,y = 0,w = 20,h = 10,cvet_bg = bg):
         self.rect = pygame.Rect(x,y,w,h)
@@ -65,15 +72,16 @@ class GameSprite(pygame.sprite.Sprite):
 class Brevno(GameSprite):
     def update(self):
         keys_pressed = pygame.key.get_pressed()
-        # print(keys_pressed)
-        if keys_pressed[pygame.K_RIGHT] and self.rect.x < W-60:
+        if keys_pressed[pygame.K_RIGHT] and self.rect.x < W - self.rect.width:
             self.rect.x += self.speed
-        if keys_pressed[pygame.K_LEFT] and self.rect.x > 10:
+        if keys_pressed[pygame.K_LEFT] and self.rect.x > 0:
             self.rect.x -= self.speed
 
 
-pobeda = Picture('victory.png', 120,130)
-qaz = Picture('game_over.jpg', 0,100)
+pobeda = GameSprite('victory.png', 50, 50, 0, 400, 200)
+qaz = Picture('game_over.jpg', 0, 50)
+
+game = Game()
 
 enemy_spisok = []
 start_x = 10
@@ -99,7 +107,12 @@ move_left = False
 
 FPS = 60 
     
-while total != 24:
+while game.run == True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+        
     if ball.colliderect(brevno.rect):
         dy *= -1
     for m in enemy_spisok:
@@ -108,31 +121,35 @@ while total != 24:
             enemy_spisok.remove(m)
             break
     win.blit(bg_image, (0, 0))
-    ball.rect.x += speed * dx
-    if ball.rect.x >= 450 or ball.rect.x <= 0:
-        dx *= -1
-    ball.rect.y += speed * dy
-    if ball.rect.y >= 500 or ball.rect.y <= 0:
-        dy *= -1
-    ball.draw()
 
-    brevno.update()
-    brevno.reset()
-    for m in enemy_spisok:
-        m.draw()
-    
-    if ball.rect.y >= 500:
-        win.fill((0, 0, 0))
-        qaz.draw()
-        pygame.display.update()
-        break
+    if not game.finish:
+        ball.rect.x += speed * dx
+        if ball.rect.x >= 450 or ball.rect.x <= 0:
+            dx *= -1
+        ball.rect.y += speed * dy
+        if ball.rect.y >= 500 or ball.rect.y <= 0:
+            dy *= -1
+        ball.draw()
 
-    elif len(enemy_spisok) <= 0:
-        pobeda.draw()
-        pygame.display.update()
-        break
-     
+        brevno.update()
+        brevno.reset()
+        for m in enemy_spisok:
+            m.draw()
+        
+        if ball.rect.y >= 500:
+            pygame.display.update()
+            game.finish = True
 
+        elif len(enemy_spisok) <= 0:
+            game.win = True
+            pygame.display.update()
+            game.finish = True
+    else:
+        if game.win:
+            pobeda.reset()
+        else:
+            win.fill((0, 0, 0))
+            qaz.draw()
 
     pygame.display.update()
     vremya.tick(FPS)
