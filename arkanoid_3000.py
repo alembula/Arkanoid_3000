@@ -21,6 +21,12 @@ class Game():
     run = True
     current_level = 0
     win = False
+    events = list()
+    keys_pressed = {}
+    
+    def update(self):
+        self.events = pygame.event.get()
+        self.keys_pressed = pygame.key.get_pressed()
 
 
 class Area():
@@ -59,7 +65,19 @@ class Label(Area):
     def draw_bordur(self, color):
         pygame.draw.rect(win, color, self.rect, self.bordur)
 
+class Baton(Label):
+    func = None
 
+    def update(self):
+        for event in game.events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                pos = event.pos
+                if self.rect.collidepoint(*pos):
+                    if not self.func is None:
+                        self.func()
+
+    def onclick(self, func):
+        self.func = func
 class Picture(Area):
     def __init__(self, file_name, x, y, w = 60, h = 50):
         super().__init__(x=x, y=y,w=w,h=h)
@@ -83,14 +101,17 @@ class GameSprite(pygame.sprite.Sprite):
 
 class Brevno(GameSprite):
     def update(self):
-        keys_pressed = pygame.key.get_pressed()
+        keys_pressed = game.keys_pressed
         if keys_pressed[pygame.K_RIGHT] and self.rect.x < W - self.rect.width:
             self.rect.x += self.speed
         if keys_pressed[pygame.K_LEFT] and self.rect.x > 0:
             self.rect.x -= self.speed
+def poshalka():
+    print('poshalochka')
 
 
-knopka = Label('lalalalal', x = 160, y = 350, w = 150, h = 50, sh_x = 17, sh_y = 10, cvet_bg = None, cvet_text = WHITE, bordur = 3, fsize = 40)
+knopka = Baton('lalalalal', x = 160, y = 350, w = 150, h = 50, sh_x = 17, sh_y = 10, cvet_bg = None, cvet_text = WHITE, bordur = 3, fsize = 40)
+knopka.onclick(poshalka)
 pobeda = GameSprite('victory.png', 50, 50, 0, 400, 200)
 qaz = Picture('game_over.jpg', 0, 50)
 
@@ -121,7 +142,10 @@ move_left = False
 FPS = 60 
     
 while game.run == True:
-    for event in pygame.event.get():
+
+    game.update()
+
+    for event in game.events:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
@@ -163,6 +187,8 @@ while game.run == True:
         else:
             win.fill((0, 0, 0))
             qaz.draw()
+
+            knopka.update()
             knopka.draw()
 
     pygame.display.update()
