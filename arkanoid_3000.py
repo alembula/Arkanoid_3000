@@ -7,6 +7,7 @@ W = 500
 H = 500
 win = pygame.display.set_mode((W,H))
 sssssssssss = (176, 199, 247)
+WHITE = (255, 255, 255)
 LIGB = (123, 200, 246)
 BLACK = (0,0,0)
 yel = (255,255,0)
@@ -33,19 +34,28 @@ class Area():
 
 
 class Label(Area):
-    def __init__(self,text = '',x = 0,y = 0,w = 20,h = 10,cvet_bg = None, cvet_text = BLACK, bordur = 0):
+    def __init__(self, text = '', x = 0, y = 0, w = 20, h = 10, sh_x = 2, sh_y = 5, cvet_bg = None, cvet_text = BLACK, bordur = 0, fsize = 20):
         super().__init__(x=x, y=y,w=w,h=h, cvet_bg = cvet_bg)
         self.text = text
+        self.sh_x = sh_x
+        self.sh_y = sh_y
         self.bordur = bordur
+        self.fsize = fsize
         self.set_text(text, cvet_text = cvet_text)
-    def set_text(self, text, fsize = 20, cvet_text = BLACK):
+    def set_text(self, text, fsize = None, cvet_text = BLACK):
+        if fsize is None:
+            fsize = self.fsize
         self.image = pygame.font.Font(None, fsize).render(text, True, cvet_text)
-    def draw(self, sh_x = 0, sh_y = 0):
+    def draw(self, sh_x = None, sh_y = None):
+        if sh_x is None:
+            sh_x = self.sh_x
+        if sh_y is None:
+            sh_y = self.sh_y
         if not self.cvet_bg is None:
             pygame.draw.rect(win,self.cvet_bg, self.rect)
         win.blit(self.image,(self.rect.x + sh_x, self.rect.y + sh_y))
         if self.bordur >= 0:
-            self.draw_bordur(BLUE)
+            self.draw_bordur(WHITE)
     def draw_bordur(self, color):
         pygame.draw.rect(win, color, self.rect, self.bordur)
 
@@ -80,7 +90,7 @@ class Brevno(GameSprite):
             self.rect.x -= self.speed
 
 
-knopka = Label('lalalalal', x = 300, y = 300, w = 50, h = 50, cvet_bg = None ,cvet_text = BLACK, bordur = 3)
+knopka = Label('lalalalal', x = 160, y = 350, w = 150, h = 50, sh_x = 17, sh_y = 10, cvet_bg = None, cvet_text = WHITE, bordur = 3, fsize = 40)
 pobeda = GameSprite('victory.png', 50, 50, 0, 400, 200)
 qaz = Picture('game_over.jpg', 0, 50)
 
