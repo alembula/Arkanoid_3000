@@ -6,14 +6,14 @@ pygame.init()
 W = 500
 H = 500
 win = pygame.display.set_mode((W,H))
-sssssssssss = (176, 199, 247)
+S = (176, 199, 247)
 WHITE = (255, 255, 255)
 LIGB = (123, 200, 246)
-BLACK = (0,0,0)
-yel = (255,255,0)
-bg = (222, 122, 52)
+BLACK = (0, 0, 0)
+YEL = (255, 255, 0)
+RED = (255, 0, 0)
+BG = (222, 122, 52)
 BLUE = (0, 0, 255)
-win.fill(bg)
 vremya = pygame.time.Clock()
 
 class Game():
@@ -23,14 +23,38 @@ class Game():
     win = False
     events = list()
     keys_pressed = {}
-    
+    enemy_spisok = []
+    start_x = 10
+    start_y = 10
+
+    def create_monsters(self, cislo_ryadov = 3, cislo_monstrov = 9):
+        self.enemy_spisok.clear()
+        for i in range(cislo_ryadov):
+            for z in range(cislo_monstrov):
+                enemy = Picture('monstr2.png', x = self.start_x + 55*z+25*i, y = self.start_y + 55*i)
+                self.enemy_spisok.append(enemy)
+            cislo_monstrov -= 1
+        
     def update(self):
         self.events = pygame.event.get()
         self.keys_pressed = pygame.key.get_pressed()
 
+    def viplunul(self):
+        pass 
+        #TODO: сделать монстра который выплевывает мячик
+
+    def otcet(self):
+        cifri = Label('3', 0, 0, 500, 500, 250, 250, None, RED, 1, 50)
+        for i in range(3, 0, -1):
+            win.blit(bg_image, (0, 0))
+            cifri.set_text(str(i))
+            cifri.draw()
+            pygame.display.update()
+            sleep(0.9)
+            
 
 class Area():
-    def __init__(self,x = 0,y = 0,w = 20,h = 10,cvet_bg = bg):
+    def __init__(self,x = 0,y = 0,w = 20,h = 10,cvet_bg = BG):
         self.rect = pygame.Rect(x,y,w,h)
         self.cvet_bg = cvet_bg
     def collidepoint(self,x, y):
@@ -47,8 +71,11 @@ class Label(Area):
         self.sh_y = sh_y
         self.bordur = bordur
         self.fsize = fsize
+        self.cvet_text = cvet_text
         self.set_text(text, cvet_text = cvet_text)
-    def set_text(self, text, fsize = None, cvet_text = BLACK):
+    def set_text(self, text, fsize = None, cvet_text = None):
+        if cvet_text is None:
+            cvet_text = self.cvet_text
         if fsize is None:
             fsize = self.fsize
         self.image = pygame.font.Font(None, fsize).render(text, True, cvet_text)
@@ -106,27 +133,32 @@ class Brevno(GameSprite):
             self.rect.x += self.speed
         if keys_pressed[pygame.K_LEFT] and self.rect.x > 0:
             self.rect.x -= self.speed
+            
+game = Game()
+
 def poshalka():
     print('poshalochka')
+
+def finish_False():
+    game.finish = False
+    game.create_monsters()
+    ball.draw()
+    brevno.update()
+    brevno.reset()
+    game.otcet()
 
 
 knopka = Baton('lalalalal', x = 160, y = 350, w = 150, h = 50, sh_x = 17, sh_y = 10, cvet_bg = None, cvet_text = WHITE, bordur = 3, fsize = 40)
 knopka.onclick(poshalka)
+
+knopka_restart = Baton('СНАЧАЛА', 160, 425, 150, 50, 10, 10, None, WHITE, 3, 40)
+knopka_restart.onclick(finish_False)
+
 pobeda = GameSprite('victory.png', 50, 50, 0, 400, 200)
 qaz = Picture('game_over.jpg', 0, 50)
 
-game = Game()
+game.create_monsters()
 
-enemy_spisok = []
-start_x = 10
-start_y = 10
-cislo_monstrov = 9
-cislo_ryadov = 3
-for i in range(cislo_ryadov):
-    for z in range(cislo_monstrov):
-        enemy = Picture('monstr2.png', x = start_x + 55*z+25*i, y = start_y + 55*i)
-        enemy_spisok.append(enemy)
-    cislo_monstrov -= 1
 bg_image = pygame.image.load('volshebnyj_les.jpg')
 ball = Picture('myach2.png', 200, 300)        
 ball.draw()
@@ -140,6 +172,8 @@ move_right = False
 move_left = False
 
 FPS = 60 
+
+game.otcet()
     
 while game.run == True:
 
@@ -152,10 +186,10 @@ while game.run == True:
         
     if ball.colliderect(brevno.rect):
         dy *= -1
-    for m in enemy_spisok:
+    for m in game.enemy_spisok:
         if m.colliderect(ball.rect):
             dy *= -1
-            enemy_spisok.remove(m)
+            game.enemy_spisok.remove(m)
             break
     win.blit(bg_image, (0, 0))
 
@@ -170,14 +204,14 @@ while game.run == True:
 
         brevno.update()
         brevno.reset()
-        for m in enemy_spisok:
+        for m in game.enemy_spisok:
             m.draw()
         
         if ball.rect.y >= 500:
             pygame.display.update()
             game.finish = True
 
-        elif len(enemy_spisok) <= 0:
+        elif len(game.enemy_spisok) <= 0:
             game.win = True
             pygame.display.update()
             game.finish = True
@@ -191,6 +225,9 @@ while game.run == True:
             knopka.update()
             knopka.draw()
 
+            knopka_restart.update()
+            knopka_restart.draw()
+
     pygame.display.update()
     vremya.tick(FPS)
-# доделать кнопку и по хорошему новый класс кнопка
+#сделать кнопки
