@@ -15,17 +15,30 @@ RED = (255, 0, 0)
 BG = (222, 122, 52)
 BLUE = (0, 0, 255)
 vremya = pygame.time.Clock()
+FPS = 60 
+
+class Level():
+    def __init__(self, cislo_ryadov, cislo_monstrov):
+        self.cislo_ryadov = cislo_ryadov
+        self.cislo_monstrov = cislo_monstrov
+        
+        
 
 class Game():
     finish = False
     run = True
-    current_level = 0
+    cur_lvl = 0
     win = False
     events = list()
     keys_pressed = {}
     enemy_spisok = []
     start_x = 10
     start_y = 10
+    ball_x = 200
+    ball_y = 300
+    br_x = 200
+    br_y = 450
+
 
     def create_monsters(self, cislo_ryadov = 3, cislo_monstrov = 9):
         self.enemy_spisok.clear()
@@ -51,6 +64,24 @@ class Game():
             cifri.draw()
             pygame.display.update()
             sleep(0.9)
+
+    def load_lvl(self, i_lvl):
+        ball.rect.x = self.ball_x
+        ball.rect.y = self.ball_y
+        brevno.rect.x = self.br_x
+        brevno.rect.y = self.br_y
+        lvl = self.levels[i_lvl]
+        self.finish = False
+        self.win = False
+        self.create_monsters(lvl.cislo_ryadov, lvl.cislo_monstrov)
+    def next_lvl(self):
+        self.otcet()
+        if self.cur_lvl < len(self.levels) - 1:
+            self.cur_lvl += 1
+            self.load_lvl(self.cur_lvl)
+    def restart(self):
+        self.load_lvl(0)
+
             
 
 class Area():
@@ -61,6 +92,7 @@ class Area():
         return self.rect.collidepoint(x,y)
     def colliderect(self, rect):
         return self.rect.colliderect(rect)
+
 
 
 class Label(Area):
@@ -133,19 +165,50 @@ class Brevno(GameSprite):
             self.rect.x += self.speed
         if keys_pressed[pygame.K_LEFT] and self.rect.x > 0:
             self.rect.x -= self.speed
-            
-game = Game()
 
+class Monstr(GameSprite):
+    def __init__(self, filename, x, y, speed, w_s, h_s, veroi, diap, napr, sek):
+        super().__init__(filename, x, y, speed, w_s, h_s)
+        self.veroi = veroi
+        self.diap = diap
+        self.napr = napr
+        self.nalichie = False
+        self.sek = sek * FPS
+        self.cur_sek = sek * FPS
+    def update(self):
+        if self.nalichie:
+            self.rect.x += self.speed
+            if self.rect.x >= W:
+                self.nalichie = False
+                self.rect.x = 300
+                self.rect.y = 300
+        else:
+            if self.cur_sek > 0:
+                self.cur_sek -= 1
+            else:
+                print('ПРОВРЕРК')
+                self.cur_sek = self.sek
+                if randint(1, 100) <= self.veroi:
+                    self.nalichie = True
+    def draw(self):
+        if self.nalichie:
+            self.reset()
+
+game = Game()
+game.levels = [
+    Level(2, 9),
+    Level(3, 9)
+]
 def poshalka():
     print('poshalochka')
 
 def finish_False():
-    game.finish = False
-    game.create_monsters()
+    game.restart()
     ball.draw()
     brevno.update()
     brevno.reset()
     game.otcet()
+
 
 
 knopka = Baton('lalalalal', x = 160, y = 350, w = 150, h = 50, sh_x = 17, sh_y = 10, cvet_bg = None, cvet_text = WHITE, bordur = 3, fsize = 40)
@@ -154,15 +217,20 @@ knopka.onclick(poshalka)
 knopka_restart = Baton('СНАЧАЛА', 160, 425, 150, 50, 10, 10, None, WHITE, 3, 40)
 knopka_restart.onclick(finish_False)
 
+knopka_dal = Baton('ДАЛЬШЕ', 160, 350, 150, 50, 10, 10, None, WHITE, 3, 40)
+knopka_dal.onclick(game.next_lvl)
+
 pobeda = GameSprite('victory.png', 50, 50, 0, 400, 200)
 qaz = Picture('game_over.jpg', 0, 50)
 
-game.create_monsters()
+monssstr = Monstr('monstr22.png', 300, 300, 4, 100, 100, 60, None, None, 3)
+
+
 
 bg_image = pygame.image.load('volshebnyj_les.jpg')
-ball = Picture('myach2.png', 200, 300)        
+ball = Picture('myach2.png', game.ball_x, game.ball_y)        
 ball.draw()
-brevno = Brevno('brevno.png', 200, 450, 5, 111, 25)        
+brevno = Brevno('brevno.png',game.br_x, game.br_y, 5, 111, 25)        
 brevno.reset()
 speed = 5
 dx = 1
@@ -171,8 +239,9 @@ total = 0
 move_right = False
 move_left = False
 
-FPS = 60 
 
+
+game.load_lvl(0)
 game.otcet()
     
 while game.run == True:
@@ -204,6 +273,10 @@ while game.run == True:
 
         brevno.update()
         brevno.reset()
+        
+        monssstr.update()
+        monssstr.draw()
+
         for m in game.enemy_spisok:
             m.draw()
         
@@ -218,6 +291,13 @@ while game.run == True:
     else:
         if game.win:
             pobeda.reset()
+
+            knopka_restart.update()
+            knopka_restart.draw()
+
+            knopka_dal.update()
+            knopka_dal.draw()
+
         else:
             win.fill((0, 0, 0))
             qaz.draw()
@@ -230,4 +310,4 @@ while game.run == True:
 
     pygame.display.update()
     vremya.tick(FPS)
-#сделать кнопки
+#дз математика растановки монстров в зависимости от размеров экрана
